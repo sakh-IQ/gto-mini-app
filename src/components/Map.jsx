@@ -6,64 +6,66 @@ const Map = ({ onLocationSelect }) => {
   const markersRef = useRef({});
 
   useEffect(() => {
-    // Проверяем загрузку API
-    if (!window.ymaps) {
-      console.error('Yandex Maps API не загружен');
-      return;
-    }
+    const checkYmaps = () => {
+      if (window.ymaps) {
+        window.ymaps.ready(() => {
+          // Создаем карту
+          const map = new window.ymaps.Map(mapRef.current, {
+            center: [46.952106, 142.761307], // Координаты центра
+            zoom: 12,
+            controls: ['zoomControl']
+          });
 
-    window.ymaps.ready(() => {
-      // Создаем карту
-      const map = new window.ymaps.Map(mapRef.current, {
-        center: [46.952106, 142.761307], // Координаты центра
-        zoom: 12,
-        controls: ['zoomControl']
-      });
+          // Добавляем маркеры для каждой локации
+          locations.forEach(location => {
+            const marker = new window.ymaps.Placemark(
+              location.coordinates,
+              {
+                balloonContentHeader: location.name,
+                balloonContentBody: `
+                  <div>
+                    <p>${location.address}</p>
+                    <p>${location.type}</p>
+                    <button id="select-${location.id}" 
+                      style="background: #dc2626; color: white; padding: 8px 16px; border-radius: 4px; margin-top: 8px;">
+                      Выбрать
+                    </button>
+                  </div>
+                `
+              },
+              {
+                preset: 'islands#redSportIcon'
+              }
+            );
 
-      // Добавляем маркеры для каждой локации
-      locations.forEach(location => {
-        const marker = new window.ymaps.Placemark(
-          location.coordinates,
-          {
-            balloonContentHeader: location.name,
-            balloonContentBody: `
-              <div>
-                <p>${location.address}</p>
-                <p>${location.type}</p>
-                <button id="select-${location.id}" 
-                  style="background: #dc2626; color: white; padding: 8px 16px; border-radius: 4px; margin-top: 8px;">
-                  Выбрать
-                </button>
-              </div>
-            `
-          },
-          {
-            preset: 'islands#redSportIcon'
-          }
-        );
+            marker.events.add('balloonopen', () => {
+              setTimeout(() => {
+                const button = document.getElementById(`select-${location.id}`);
+                if (button) {
+                  button.onclick = () => {
+                    onLocationSelect(location);
+                    marker.balloon.close();
+                  };
+                }
+              }, 100);
+            });
 
-        marker.events.add('balloonopen', () => {
-          setTimeout(() => {
-            const button = document.getElementById(`select-${location.id}`);
-            if (button) {
-              button.onclick = () => {
-                onLocationSelect(location);
-                marker.balloon.close();
-              };
-            }
-          }, 100);
+            map.geoObjects.add(marker);
+            markersRef.current[location.id] = marker;
+          });
+
+          // Устанавливаем границы карты по маркерам
+          map.setBounds(map.geoObjects.getBounds(), {
+            checkZoomRange: true,
+            zoomMargin: 50
+          });
         });
-
-        map.geoObjects.add(marker);
-        markersRef.current[location.id] = marker;
-      });
-
-      // Устанавливаем границы карты по маркерам
-      map.setBounds(map.geoObjects.getBounds(), {
-        checkZoomRange: true,
-        zoomMargin: 50
-      });
-    });
+      } else {
+        setTimeout(checkYmaps, 1000); // проверяем каждую секунду
+      }
+    };
+    
+    checkYmaps();
   }, [onLocationSelect]);
 
   return (
