@@ -63,28 +63,28 @@ Telegram: @${user.username}
           chat_id: TELEGRAM_CHAT_ID,
           text: message
         })
-      });      
-
-      webApp.showPopup({
-        title: 'Успешно!',
-        message: 'Ваша заявка принята. Ожидайте подтверждения.',
-        buttons: [{
-          type: 'ok',
-        }]
       });
+
+      if (webApp) {  // Добавляем проверку
+        webApp.showPopup({
+          title: 'Успешно!',
+          message: 'Ваша заявка принята. Ожидайте подтверждения.',
+          buttons: [{ type: 'ok' }]
+        });
+      }
 
       setView('list');
       setSelectedLocation(null);
     } catch (error) {
-      webApp.showPopup({
-        title: 'Ошибка',
-        message: 'Не удалось отправить заявку. Попробуйте позже.',
-        buttons: [{
-          type: 'ok',
-        }]
-      });
+      if (webApp) {  // И тут тоже
+        webApp.showPopup({
+          title: 'Ошибка',
+          message: 'Не удалось отправить заявку. Попробуйте позже.',
+          buttons: [{ type: 'ok' }]
+        });
+      }
     }
-  };
+};
 
   return (
     <div className="min-h-screen bg-gray-50">
