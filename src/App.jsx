@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // добавляем useEffect
 import LocationList from './components/LocationList';
 import LocationDetails from './components/LocationDetails';
 import RegistrationForm from './components/RegistrationForm';
@@ -6,11 +6,25 @@ import Map from './components/Map';
 import { MapIcon, XIcon } from 'lucide-react';
 import { useTelegramWebApp } from './hooks/useTelegramWebApp';
 
+// Добавляем константы для отправки данных
+const TELEGRAM_BOT_TOKEN = "8025818266:AAFcZeopGZsTIUWZNRml4rrllioR0pCRo88";
+const TELEGRAM_CHAT_ID = "4738151106";
+const EMAIL = "sakh.crazy.kill@gmail.com";
+
 const App = () => {
-  const [view, setView] = useState('list'); // list, details, form
+  const [view, setView] = useState('list');
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [showMap, setShowMap] = useState(false);
   const { webApp, user } = useTelegramWebApp();
+
+  // Добавляем useEffect для фиксации окна
+  useEffect(() => {
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.expand();
+      tg.enableClosingConfirmation();
+    }
+  }, []);
 
   const handleLocationSelect = (location) => {
     setSelectedLocation(location);
