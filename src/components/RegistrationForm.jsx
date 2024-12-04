@@ -34,13 +34,16 @@ const RegistrationForm = ({ location, user, onSubmit }) => {
     }
   };
 
-// В RegistrationForm.jsx исправить
-	const handlePhoneShare = () => {
-	  const tg = window.Telegram?.WebApp;
-	  if (tg?.requestContact) {
-		tg.requestContact();
-	  }
-	};
+  const handlePhoneShare = () => {
+    const tg = window.Telegram?.WebApp;
+    if (tg?.requestContact) {
+      tg.requestContact((result) => {
+        if (result) {
+          setFormData(prev => ({ ...prev, phone: result.phone_number }));
+        }
+      });
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
