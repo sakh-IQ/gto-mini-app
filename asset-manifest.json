@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/gto-mini-app/static/css/main.2f3cb7a3.css",
-    "main.js": "/gto-mini-app/static/js/main.ece1a4df.js",
+    "main.js": "/gto-mini-app/static/js/main.b537b51e.js",
     "static/js/453.9af2536e.chunk.js": "/gto-mini-app/static/js/453.9af2536e.chunk.js",
     "index.html": "/gto-mini-app/index.html",
     "main.2f3cb7a3.css.map": "/gto-mini-app/static/css/main.2f3cb7a3.css.map",
-    "main.ece1a4df.js.map": "/gto-mini-app/static/js/main.ece1a4df.js.map",
+    "main.b537b51e.js.map": "/gto-mini-app/static/js/main.b537b51e.js.map",
     "453.9af2536e.chunk.js.map": "/gto-mini-app/static/js/453.9af2536e.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.2f3cb7a3.css",
-    "static/js/main.ece1a4df.js"
+    "static/js/main.b537b51e.js"
   ]
 }
