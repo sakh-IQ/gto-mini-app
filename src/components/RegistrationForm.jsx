@@ -35,22 +35,20 @@ const RegistrationForm = ({ location, user, onSubmit }) => {
    }
  };
 
- const handlePhoneShare = async () => {
+ const handlePhoneShare = () => {
    const tg = window.Telegram?.WebApp;
    if (tg) {
-     try {
-       if (tg.requestContact) {
-         const result = await tg.requestContact();
-         if (result) {
-           console.log('Got phone:', result); // для отладки
-           setFormData(prev => ({ ...prev, phone: result }));
-         }
+     tg.requestContact().then(contact => {
+      // Если contact существует, берём из него номер телефона
+       if (contact && contact.phone_number) {
+         setFormData(prev => ({
+           ...prev,
+           phone: contact.phone_number
+         }));
        }
-     } catch (error) {
-       console.error('Error getting phone number:', error);
-     }
-   } else {
-     console.log('Telegram WebApp not available'); // для отладки
+     }).catch(error => {
+       console.error('Error requesting contact:', error);
+     });
    }
  };
 
