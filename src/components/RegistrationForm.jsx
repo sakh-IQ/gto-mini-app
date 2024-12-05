@@ -37,11 +37,14 @@ const RegistrationForm = ({ location, user, onSubmit }) => {
   const handlePhoneShare = () => {
     const tg = window.Telegram?.WebApp;
     if (tg?.requestContact) {
-      tg.requestContact((result) => {
-        if (result) {
-          setFormData(prev => ({ ...prev, phone: result.phone_number }));
-        }
-      });
+    // Обратите внимание на изменение здесь
+      tg.requestContact()
+        .then(contact => {
+          if (contact && contact.phone_number) {
+            setFormData(prev => ({ ...prev, phone: contact.phone_number }));
+          }
+        })
+        .catch(error => console.error('Error getting contact:', error));
     }
   };
 
