@@ -8,7 +8,7 @@ import { useTelegramWebApp } from './hooks/useTelegramWebApp';
 
 // Добавляем константы для отправки данных
 const TELEGRAM_BOT_TOKEN = "8025818266:AAFcZeopGZsTIUWZNRml4rrllioR0pCRo88";
-const TELEGRAM_CHAT_ID = "4738151106";
+const TELEGRAM_CHAT_ID = "-4738151106";
 const EMAIL = "sakh.crazy.kill@gmail.com";
 
 const App = () => {
