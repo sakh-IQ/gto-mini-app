@@ -42,6 +42,7 @@ const App = () => {
 
   const handleFormSubmit = async (formData) => {
     try {
+	  console.log('Sending message to Telegram...'); // отладка
       const message = `
 📍 Новая запись на сдачу ГТО
 
@@ -61,10 +62,16 @@ Telegram: @${user.username}
         },
         body: JSON.stringify({
           chat_id: TELEGRAM_CHAT_ID,
-          text: message
+          text: message,
+		  parse_mode: 'HTML'
         })
       });
+      const result = await response.json();
+      console.log('Telegram response:', result); // отладка
 
+      if (!response.ok) {
+        throw new Error(`Failed to send message: ${result.description}`);
+      }
       if (webApp) {  // Добавляем проверку
         webApp.showPopup({
           title: 'Успешно!',
