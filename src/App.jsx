@@ -6,12 +6,11 @@ import Map from './components/Map';
 import { MapIcon, XIcon } from 'lucide-react';
 import { useTelegramWebApp } from './hooks/useTelegramWebApp';
 
-// Добавляем константы для отправки данных
 const TELEGRAM_BOT_TOKEN = "8025818266:AAFcZeopGZsTIUWZNRml4rrllioR0pCRo88";
 const TELEGRAM_CHAT_ID = "-4738151106";
 const EMAIL = "sakh.crazy.kill@gmail.com";
 
-// Объект для хранения времени отправки по пользователям
+const userSubmitCounts = {};
 const userSubmitTimes = {};
 
 const App = () => {
@@ -44,7 +43,6 @@ const App = () => {
 
  const handleFormSubmit = async (formData) => {
    try {
-     // Проверка на спам
      const userId = user?.id;
      if (!userId) {
        if (webApp) {
@@ -57,20 +55,26 @@ const App = () => {
        return;
      }
 
-     const now = Date.now();
-     const lastSubmitTime = userSubmitTimes[userId] || 0;
-     const cooldownPeriod = 5 * 60 * 1000; // 5 минут
+     userSubmitCounts[userId] = (userSubmitCounts[userId] || 0) + 1;
 
-     if (now - lastSubmitTime < cooldownPeriod) {
-       const waitMinutes = Math.ceil((cooldownPeriod - (now - lastSubmitTime)) / 60000);
-       if (webApp) {
-         webApp.showPopup({
-           title: 'Подождите',
-           message: `Можно отправить следующую заявку через ${waitMinutes} минут`,
-           buttons: [{ type: 'ok' }]
-         });
+     if (userSubmitCounts[userId] > 3) {
+       const now = Date.now();
+       const lastSubmitTime = userSubmitTimes[userId] || 0;
+       const cooldownPeriod = 5 * 60 * 1000;
+
+       if (now - lastSubmitTime < cooldownPeriod) {
+         const waitMinutes = Math.ceil((cooldownPeriod - (now - lastSubmitTime)) / 60000);
+         if (webApp) {
+           webApp.showPopup({
+             title: 'Подождите',
+             message: `Можно отправить следующую заявку через ${waitMinutes} минут`,
+             buttons: [{ type: 'ok' }]
+           });
+         }
+         return;
+       } else {
+         userSubmitCounts[userId] = 1;
        }
-       return;
      }
 
      console.log('Sending message to Telegram...');
@@ -84,7 +88,7 @@ const App = () => {
 УИН: ${formData.uin}
 Дисциплины: ${formData.disciplines.join(', ')}
 
-Telegram: ${username}${userId ? ` (tg://user?id=${userId})` : ''}
+Пользователь: ${username || `<a href="tg://user?id=${userId}">Открыть профиль</a>`}
 Отправлено: ${new Date().toLocaleString()}
      `;
 
