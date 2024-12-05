@@ -115,27 +115,17 @@ const RegistrationForm = ({ location, user, onSubmit }) => {
            </div>
 
            <div>
-             <label className="block text-sm font-medium mb-1">Телефон *</label>
-             <div className="flex gap-2">
-               <input
-                 type="tel"
-                 className={`flex-1 p-2 border rounded ${errors.phone ? 'border-red-500' : ''}`}
-                 value={formData.phone}
-                 onChange={e => setFormData({...formData, phone: e.target.value})}
-               />
-               <button
-                 type="button"
-                 onClick={handlePhoneShare}
-                 className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center gap-2"
-               >
-                 <Phone className="w-4 h-4" />
-                 <span>Из Telegram</span>
-               </button>
-             </div>
-             {errors.phone && (
-               <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
-             )}
-           </div>
+		     <label className="block text-sm font-medium mb-1">Телефон *</label>
+		     <input
+			   type="tel"
+			   className={`w-full p-2 border rounded ${errors.phone ? 'border-red-500' : ''}`}
+			   value={formData.phone}
+			   onChange={e => setFormData({...formData, phone: e.target.value})}
+		     />
+		     {errors.phone && (
+			   <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
+		     )}
+		   </div>
          </div>
 
          <div>
