@@ -111,7 +111,7 @@ const App = () => {
        throw new Error(`Failed to send message: ${result.description}`);
      }
 
-     // Сохраняем время успешной отправки
+     const now = Date.now();  // Define 'now' here
      userSubmitTimes[userId] = now;
 
      if (webApp) {
