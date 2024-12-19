@@ -77,9 +77,11 @@ const App = () => {
        }
      }
 
-     console.log('Sending message to Telegram...');
-     const username = user?.username ? `@${user.username}` : '';
-     const message = `
+	 console.log('Sending message to Telegram...');
+	 const username = user?.username ? `@${user.username}` : '';
+	 const userIdLink = user?.id ? `<a href="tg://user?id=${user.id}">Открыть профиль</a>` : 'Нет данных';
+
+const message = `
 📍 Новая запись на сдачу ГТО
 
 Место: ${selectedLocation.name}
@@ -88,9 +90,13 @@ const App = () => {
 УИН: ${formData.uin}
 Дисциплины: ${formData.disciplines.join(', ')}
 
-Пользователь: ${username || `<a href="tg://user?id=${userId}">Открыть профиль</a>`}
+Пользователь: ${username || userIdLink}
 Отправлено: ${new Date().toLocaleString()}
-     `;
+	 `;
+
+// Отправка сообщения в Telegram
+console.log(message);
+
 
      const response = await fetch('https://api.telegram.org/bot' + TELEGRAM_BOT_TOKEN + '/sendMessage', {
        method: 'POST',
