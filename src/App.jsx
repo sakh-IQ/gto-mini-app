@@ -6,16 +6,9 @@ import Map from './components/Map';
 import { MapIcon, XIcon } from 'lucide-react';
 import { useTelegramWebApp } from './hooks/useTelegramWebApp';
 
-<<<<<<< HEAD
 const TELEGRAM_BOT_TOKEN = "8025818266:AAFcZeopGZsTIUWZNRml4rrllioR0pCRo88";
 const TELEGRAM_CHAT_ID = "-4738151106";
 const EMAIL = "sakh.crazy.kill@gmail.com";
-=======
-// Добавляем константы для отправки данных
-const TELEGRAM_BOT_TOKEN = "";
-const TELEGRAM_CHAT_ID = "";
-const EMAIL = "";
->>>>>>> 16f2cb6e0af07dea6878c09c38cd6baaba68c5f6
 
 const userSubmitCounts = {};
 const userSubmitTimes = {};
