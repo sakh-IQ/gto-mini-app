@@ -87,13 +87,10 @@ const App = () => {
         return;
       }
 
-// В функции handleFormSubmit меняем только формат ссылки:
+      const username = user?.username ? `@${user.username}` : '';
+      const userLink = `<a href="tg://user?id=${userId}">${userId}</a>`;
 
-const username = user?.username ? `@${user.username}` : '';
-// Используем простой формат ссылки
-const userLink = `<a href="tg://user?id=${userId}">🔗 ${userId}</a>`;
-
-const message = `
+      const message = `
 📍 Новая запись на сдачу ГТО
 
 Место: ${selectedLocation.name}
@@ -102,7 +99,7 @@ const message = `
 УИН: ${formData.uin}
 Дисциплины: ${formData.disciplines.join(', ')}
 
-Пользователь: ${username ? `${username} (ID: ${userLink})` : userLink}
+Пользователь: ${username ? `${username} (ID: ${userLink})` : `ID: ${userLink}`}
 Отправлено: ${new Date().toLocaleString()}
 `;
 
