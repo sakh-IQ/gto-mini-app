@@ -9,12 +9,35 @@ import { useTelegramWebApp } from './hooks/useTelegramWebApp';
 const TELEGRAM_BOT_TOKEN = "8025818266:AAFcZeopGZsTIUWZNRml4rrllioR0pCRo88";
 const TELEGRAM_CHAT_ID = "-4738151106";
 const EMAIL = "sakh.crazy.kill@gmail.com";
+const BLOCKED_USERS_URL = '/api/blockedUsers.json'; // URL к файлу с заблокированными пользователями
 
 const App = () => {
   const [view, setView] = useState('list');
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [showMap, setShowMap] = useState(false);
   const { webApp, user } = useTelegramWebApp();
+  const [blockedUsers, setBlockedUsers] = useState([]);
+
+  // Загружаем список заблокированных пользователей
+  useEffect(() => {
+    const fetchBlockedUsers = async () => {
+      try {
+        const response = await fetch(BLOCKED_USERS_URL);
+        const data = await response.json();
+        setBlockedUsers(data.blockedUsers.map(user => user.id));
+      } catch (error) {
+        console.error('Ошибка при загрузке списка заблокированных пользователей:', error);
+      }
+    };
+
+    // Загружаем список сразу при запуске
+    fetchBlockedUsers();
+
+    // Устанавливаем интервал для периодической проверки
+    const interval = setInterval(fetchBlockedUsers, 60000); // Проверяем каждую минуту
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
@@ -53,31 +76,15 @@ const App = () => {
       }
 
       // Проверяем, не заблокирован ли пользователь
-      try {
-        const checkResponse = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getChatMember`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            chat_id: TELEGRAM_CHAT_ID,
-            user_id: userId
-          })
-        });
-
-        const checkResult = await checkResponse.json();
-        if (checkResult.ok && checkResult.result.status === 'kicked') {
-          if (webApp) {
-            webApp.showPopup({
-              title: 'Ошибка',
-              message: 'Вы не можете отправлять заявки',
-              buttons: [{ type: 'ok' }]
-            });
-          }
-          return;
+      if (blockedUsers.includes(userId.toString())) {
+        if (webApp) {
+          webApp.showPopup({
+            title: 'Доступ ограничен',
+            message: 'Вы заблокированы за спам. Для разрешения ситуации обратитесь в муниципальный центр ГТО.',
+            buttons: [{ type: 'ok' }]
+          });
         }
-      } catch (error) {
-        console.error('Error checking user status:', error);
+        return;
       }
 
       console.log('Sending message to Telegram...');
@@ -129,6 +136,7 @@ const App = () => {
       setView('list');
       setSelectedLocation(null);
     } catch (error) {
+      console.error('Error submitting form:', error);
       if (webApp) {
         webApp.showPopup({
           title: 'Ошибка',
