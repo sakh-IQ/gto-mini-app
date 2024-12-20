@@ -100,8 +100,8 @@ const App = () => {
   УИН: ${formData.uin}
   Дисциплины: ${formData.disciplines.join(', ')}
   
-  Пользователь: <a href="tg://user?id=${userId}">ID: ${userId}</a>
-  ${username ? `(${username})` : ''}
+  Пользователь: ID: ${userId} ${username ? `(${username})` : ''}
+  👤 <a href="https://t.me/${userId}">Открыть чат с пользователем</a>
   Отправлено: ${new Date().toLocaleString()}
   `;
 
