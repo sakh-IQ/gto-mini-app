@@ -93,14 +93,15 @@ const App = () => {
       
   const message = `
   📍 Новая запись на сдачу ГТО
-
+  
   Место: ${selectedLocation.name}
   ФИО: ${formData.lastName} ${formData.firstName} ${formData.middleName}
   Телефон: ${formData.phone}
   УИН: ${formData.uin}
   Дисциплины: ${formData.disciplines.join(', ')}
-
-  ${username ? `Пользователь: ${username} (ID: ${userId})` : `Пользователь: <a href="tg://user?id=${userId}">ID: ${userId}</a>`}
+  
+  Пользователь: <a href="tg://user?id=${userId}">ID: ${userId}</a>
+  ${username ? `(${username})` : ''}
   Отправлено: ${new Date().toLocaleString()}
   `;
 
