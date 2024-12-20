@@ -76,10 +76,9 @@ const App = () => {
       }
 
       const username = user?.username ? `@${user.username}` : '';
-      // Создаем несколько вариантов ссылок для максимальной совместимости
-      const userMention = username || `<a href="tg://resolve?domain=id${userId}">id${userId}</a>`;
-      const profileLink = `<a href="tg://user?id=${userId}">Открыть профиль</a>`;
-      
+      // Используем mention формат для создания кликабельной ссылки
+      const mentionLink = `<a href="https://t.me/${userId}">ID: ${userId}</a>`;
+
       const message = `
 📍 Новая запись на сдачу ГТО
 
@@ -89,10 +88,7 @@ const App = () => {
 УИН: ${formData.uin}
 Дисциплины: ${formData.disciplines.join(', ')}
 
-👤 Отправитель: ${userMention}
-ℹ️ ID: ${userId}
-${profileLink}
-
+Пользователь: ${username ? `${username} (${mentionLink})` : mentionLink}
 Отправлено: ${new Date().toLocaleString()}
       `;
 
@@ -106,20 +102,17 @@ ${profileLink}
         body: JSON.stringify({
           chat_id: TELEGRAM_CHAT_ID,
           text: message,
-          parse_mode: 'HTML',
-          disable_web_page_preview: true
+          parse_mode: 'HTML'
         }),
       });
-  
+
       const result = await response.json();
-  
+      console.log('Response:', result);
+
       if (!response.ok) {
         throw new Error(`Ошибка отправки: ${result.description}`);
       }
-  
-      console.log('Успешно отправлено:', result);
-  
-      // Успешное завершение
+
       if (webApp) {
         webApp.showPopup({
           title: 'Успешно!',
@@ -127,14 +120,11 @@ ${profileLink}
           buttons: [{ type: 'ok' }],
         });
       }
-  
-      // Сброс состояния
+
       setView('list');
       setSelectedLocation(null);
     } catch (error) {
       console.error('Ошибка отправки:', error);
-  
-      // Ошибка при отправке
       if (webApp) {
         webApp.showPopup({
           title: 'Ошибка',
