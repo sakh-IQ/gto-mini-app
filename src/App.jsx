@@ -61,6 +61,8 @@ const App = () => {
     setSelectedLocation(null);
   };
 
+{/* ... остальные импорты и код ... */}
+
   const handleFormSubmit = async (formData) => {
     try {
       const userId = user?.id;
@@ -90,20 +92,19 @@ const App = () => {
       console.log('Sending message to Telegram...');
       const username = user?.username ? `@${user.username}` : '';
       const userIdInfo = `ID: ${userId}`;
-      const userLink = `<a href="tg://user?id=${userId}">Открыть профиль</a>`;
       
       const message = `
-📍 Новая запись на сдачу ГТО
+  📍 Новая запись на сдачу ГТО
 
-Место: ${selectedLocation.name}
-ФИО: ${formData.lastName} ${formData.firstName} ${formData.middleName}
-Телефон: ${formData.phone}
-УИН: ${formData.uin}
-Дисциплины: ${formData.disciplines.join(', ')}
+  Место: ${selectedLocation.name}
+  ФИО: ${formData.lastName} ${formData.firstName} ${formData.middleName}
+  Телефон: ${formData.phone}
+  УИН: ${formData.uin}
+  Дисциплины: ${formData.disciplines.join(', ')}
 
-Пользователь: ${username ? username + ' (' + userIdInfo + ')' : userIdInfo}
-Профиль: ${userLink}
-Отправлено: ${new Date().toLocaleString()}
+  Пользователь: ${username ? username + ' (' + userIdInfo + ')' : userIdInfo}
+  <a href="tg://user?id=${userId}">👤 Открыть профиль пользователя</a>
+  Отправлено: ${new Date().toLocaleString()}
       `;
 
       const response = await fetch('https://api.telegram.org/bot' + TELEGRAM_BOT_TOKEN + '/sendMessage', {
