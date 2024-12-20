@@ -61,8 +61,6 @@ const App = () => {
     setSelectedLocation(null);
   };
 
-{/* ... остальные импорты и код ... */}
-
   const handleFormSubmit = async (formData) => {
     try {
       const userId = user?.id;
