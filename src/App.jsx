@@ -61,48 +61,37 @@ const App = () => {
     setSelectedLocation(null);
   };
 
-  const handleFormSubmit = async (formData) => {
-    try {
-      const userId = user?.id;
-      if (!userId) {
-        if (webApp) {
-          webApp.showPopup({
-            title: 'Ошибка',
-            message: 'Не удалось определить пользователя',
-            buttons: [{ type: 'ok' }]
-          });
-        }
-        return;
+{/* В функции handleFormSubmit заменим формирование сообщения */}
+
+const handleFormSubmit = async (formData) => {
+  try {
+    const userId = user?.id;
+    if (!userId) {
+      if (webApp) {
+        webApp.showPopup({
+          title: 'Ошибка',
+          message: 'Не удалось определить пользователя',
+          buttons: [{ type: 'ok' }]
+        });
       }
+      return;
+    }
 
-      // Проверяем, не заблокирован ли пользователь
-      if (blockedUsers.includes(userId.toString())) {
-        if (webApp) {
-          webApp.showPopup({
-            title: 'Доступ ограничен',
-            message: 'Вы заблокированы за спам. Для разрешения ситуации обратитесь в муниципальный центр ГТО.',
-            buttons: [{ type: 'ok' }]
-          });
-        }
-        return;
+    // Проверяем, не заблокирован ли пользователь
+    if (blockedUsers.includes(userId.toString())) {
+      if (webApp) {
+        webApp.showPopup({
+          title: 'Доступ ограничен',
+          message: 'Вы заблокированы за спам. Для разрешения ситуации обратитесь в муниципальный центр ГТО.',
+          buttons: [{ type: 'ok' }]
+        });
       }
+      return;
+    }
 
-      const username = user?.username ? `@${user.username}` : '';
-      
-      // Создаем inline keyboard для кнопки
-      const keyboard = {
-        inline_keyboard: [
-          [
-            {
-              text: "👤 Открыть чат с пользователем",
-              url: `tg://user?id=${userId}`
-            }
-          ]
-        ]
-      };
-
-      const message = `
-📍 Новая запись на сдачу ГТО
+    const username = user?.username ? `@${user.username}` : '';
+    
+    const message = `📍 Новая запись на сдачу ГТО
 
 Место: ${selectedLocation.name}
 ФИО: ${formData.lastName} ${formData.firstName} ${formData.middleName}
@@ -113,50 +102,54 @@ const App = () => {
 Пользователь: ${username || 'Без username'} (ID: ${userId})
 Отправлено: ${new Date().toLocaleString()}`;
 
-      console.log('Отправляемое сообщение:', message);
+    const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHAT_ID,
+        text: message,
+        reply_markup: {
+          inline_keyboard: [[
+            {
+              text: "Открыть профиль пользователя",
+              callback_data: `user_${userId}`
+            }
+          ]]
+        }
+      })
+    });
 
-      const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          chat_id: TELEGRAM_CHAT_ID,
-          text: message,
-          reply_markup: keyboard,
-          disable_web_page_preview: true
-        })
-      });
+    const result = await response.json();
+    console.log('Response:', result);
 
-      const result = await response.json();
-      console.log('Response:', result);
-
-      if (!result.ok) {
-        console.error('Ошибка отправки:', result);
-        throw new Error(result.description || 'Ошибка отправки сообщения');
-      }
-
-      if (webApp) {
-        webApp.showPopup({
-          title: 'Успешно!',
-          message: 'Ваша заявка принята.',
-          buttons: [{ type: 'ok' }],
-        });
-      }
-
-      setView('list');
-      setSelectedLocation(null);
-    } catch (error) {
-      console.error('Ошибка отправки:', error);
-      if (webApp) {
-        webApp.showPopup({
-          title: 'Ошибка',
-          message: 'Не удалось отправить заявку. Попробуйте позже.',
-          buttons: [{ type: 'ok' }],
-        });
-      }
+    if (!result.ok) {
+      console.error('Ошибка отправки:', result);
+      throw new Error(result.description || 'Ошибка отправки сообщения');
     }
-  };
+
+    if (webApp) {
+      webApp.showPopup({
+        title: 'Успешно!',
+        message: 'Ваша заявка принята.',
+        buttons: [{ type: 'ok' }],
+      });
+    }
+
+    setView('list');
+    setSelectedLocation(null);
+  } catch (error) {
+    console.error('Ошибка отправки:', error);
+    if (webApp) {
+      webApp.showPopup({
+        title: 'Ошибка',
+        message: 'Не удалось отправить заявку. Попробуйте позже.',
+        buttons: [{ type: 'ok' }],
+      });
+    }
+  }
+};
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Шапка */}
