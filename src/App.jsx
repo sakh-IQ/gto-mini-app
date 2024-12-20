@@ -63,25 +63,41 @@ const App = () => {
 
   const handleFormSubmit = async (formData) => {
     try {
+      const userId = user?.id;
+      if (!userId) {
+        if (webApp) {
+          webApp.showPopup({
+            title: 'Ошибка',
+            message: 'Не удалось определить пользователя',
+            buttons: [{ type: 'ok' }]
+          });
+        }
+        return;
+      }
+
       const username = user?.username ? `@${user.username}` : '';
-      const userIdLink = `<a href="tg://user?id=${user.id}">${user.id}</a>`;
-  
+      // Создаем несколько вариантов ссылок для максимальной совместимости
+      const userMention = username || `<a href="tg://resolve?domain=id${userId}">id${userId}</a>`;
+      const profileLink = `<a href="tg://user?id=${userId}">Открыть профиль</a>`;
+      
       const message = `
-  📍 Новая запись на сдачу ГТО
-  
-  Место: ${selectedLocation.name}
-  ФИО: ${formData.lastName} ${formData.firstName} ${formData.middleName}
-  Телефон: ${formData.phone}
-  УИН: ${formData.uin}
-  Дисциплины: ${formData.disciplines.join(', ')}
-  
-  Пользователь: ${username || userIdLink}
-  Отправлено: ${new Date().toLocaleString()}
+📍 Новая запись на сдачу ГТО
+
+Место: ${selectedLocation.name}
+ФИО: ${formData.lastName} ${formData.firstName} ${formData.middleName}
+Телефон: ${formData.phone}
+УИН: ${formData.uin}
+Дисциплины: ${formData.disciplines.join(', ')}
+
+👤 Отправитель: ${userMention}
+ℹ️ ID: ${userId}
+${profileLink}
+
+Отправлено: ${new Date().toLocaleString()}
       `;
-  
+
       console.log('Отправляемое сообщение:', message);
-  
-      // Отправка сообщения в Telegram
+
       const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
         method: 'POST',
         headers: {
@@ -91,6 +107,7 @@ const App = () => {
           chat_id: TELEGRAM_CHAT_ID,
           text: message,
           parse_mode: 'HTML',
+          disable_web_page_preview: true
         }),
       });
   
