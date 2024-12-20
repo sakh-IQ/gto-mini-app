@@ -9,7 +9,7 @@ import { useTelegramWebApp } from './hooks/useTelegramWebApp';
 const TELEGRAM_BOT_TOKEN = "8025818266:AAFcZeopGZsTIUWZNRml4rrllioR0pCRo88";
 const TELEGRAM_CHAT_ID = "-4738151106";
 const EMAIL = "sakh.crazy.kill@gmail.com";
-const BLOCKED_USERS_URL = 'gto-mini-app/blockedUsers.json'; // URL к файлу с заблокированными пользователями
+const BLOCKED_USERS_URL = '/gto-mini-app/blockedUsers.json'; // URL к файлу с заблокированными пользователями
 
 const App = () => {
   const [view, setView] = useState('list');
@@ -91,19 +91,18 @@ const App = () => {
       const username = user?.username ? `@${user.username}` : '';
       const userIdInfo = `ID: ${userId}`;
       
-      const message = `
-      📍 Новая запись на сдачу ГТО
-      
-      Место: ${selectedLocation.name}
-      ФИО: ${formData.lastName} ${formData.firstName} ${formData.middleName}
-      Телефон: ${formData.phone}
-      УИН: ${formData.uin}
-      Дисциплины: ${formData.disciplines.join(', ')}
-      
-      Пользователь: ${username ? username + ' (' + userIdInfo + ')' : userIdInfo}
-      👤 <a href="tg://user?id=${userId}">Перейти в профиль</a>
-      Отправлено: ${new Date().toLocaleString()}
-      `;
+  const message = `
+  📍 Новая запись на сдачу ГТО
+
+  Место: ${selectedLocation.name}
+  ФИО: ${formData.lastName} ${formData.firstName} ${formData.middleName}
+  Телефон: ${formData.phone}
+  УИН: ${formData.uin}
+  Дисциплины: ${formData.disciplines.join(', ')}
+
+  ${username ? `Пользователь: ${username} (ID: ${userId})` : `Пользователь: <a href="tg://user?id=${userId}">ID: ${userId}</a>`}
+  Отправлено: ${new Date().toLocaleString()}
+  `;
 
       const response = await fetch('https://api.telegram.org/bot' + TELEGRAM_BOT_TOKEN + '/sendMessage', {
         method: 'POST',
