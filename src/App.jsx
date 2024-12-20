@@ -63,35 +63,11 @@ const App = () => {
 
   const handleFormSubmit = async (formData) => {
     try {
-      const userId = user?.id;
-      if (!userId) {
-        if (webApp) {
-          webApp.showPopup({
-            title: 'Ошибка',
-            message: 'Не удалось определить пользователя',
-            buttons: [{ type: 'ok' }]
-          });
-        }
-        return;
-      }
-
-      // Проверяем, не заблокирован ли пользователь
-      if (blockedUsers.includes(userId.toString())) {
-        if (webApp) {
-          webApp.showPopup({
-            title: 'Доступ ограничен',
-            message: 'Вы заблокированы за спам. Для разрешения ситуации обратитесь в муниципальный центр ГТО.',
-            buttons: [{ type: 'ok' }]
-          });
-        }
-        return;
-      }
-
-      console.log('Sending message to Telegram...');
+      const userId = user?.id ? user.id : null;
+      const userIdLink = userId ? `<a href="tg://user?id=${userId}">${userId}</a>` : 'Нет данных';
       const username = user?.username ? `@${user.username}` : '';
-      const userIdInfo = `ID: ${userId}`;
-      
-  const message = `
+  
+      const message = `
   📍 Новая запись на сдачу ГТО
   
   Место: ${selectedLocation.name}
@@ -100,10 +76,12 @@ const App = () => {
   УИН: ${formData.uin}
   Дисциплины: ${formData.disciplines.join(', ')}
   
-  Пользователь: ${username || ''} (<a href="tg://user?id=${userId}">${userId}</a>)
+  Пользователь: ${username || userIdLink}
   Отправлено: ${new Date().toLocaleString()}
-  `;
-
+      `;
+  
+      console.log('Отправляемое сообщение:', message);
+  
       const response = await fetch('https://api.telegram.org/bot' + TELEGRAM_BOT_TOKEN + '/sendMessage', {
         method: 'POST',
         headers: {
@@ -112,38 +90,40 @@ const App = () => {
         body: JSON.stringify({
           chat_id: TELEGRAM_CHAT_ID,
           text: message,
-          parse_mode: 'HTML'
-        })
+          parse_mode: 'HTML',
+        }),
       });
-
+  
       const result = await response.json();
-      console.log('Telegram response:', result);
-
+  
       if (!response.ok) {
-        throw new Error(`Failed to send message: ${result.description}`);
+        throw new Error(`Ошибка отправки: ${result.description}`);
       }
-
+  
+      console.log('Успешно отправлено:', result);
+  
       if (webApp) {
         webApp.showPopup({
           title: 'Успешно!',
-          message: 'Ваша заявка принята. Ожидайте подтверждения.',
-          buttons: [{ type: 'ok' }]
+          message: 'Ваша заявка принята.',
+          buttons: [{ type: 'ok' }],
         });
       }
-
+  
       setView('list');
       setSelectedLocation(null);
     } catch (error) {
-      console.error('Error submitting form:', error);
+      console.error('Ошибка отправки:', error);
       if (webApp) {
         webApp.showPopup({
           title: 'Ошибка',
           message: 'Не удалось отправить заявку. Попробуйте позже.',
-          buttons: [{ type: 'ok' }]
+          buttons: [{ type: 'ok' }],
         });
       }
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-gray-50">
