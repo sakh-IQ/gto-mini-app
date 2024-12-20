@@ -75,9 +75,21 @@ const App = () => {
         return;
       }
 
+      // Проверяем, не заблокирован ли пользователь
+      if (blockedUsers.includes(userId.toString())) {
+        if (webApp) {
+          webApp.showPopup({
+            title: 'Доступ ограничен',
+            message: 'Вы заблокированы за спам. Для разрешения ситуации обратитесь в муниципальный центр ГТО.',
+            buttons: [{ type: 'ok' }]
+          });
+        }
+        return;
+      }
+
       const username = user?.username ? `@${user.username}` : '';
-      // Используем mention формат для создания кликабельной ссылки
-      const mentionLink = `<a href="https://t.me/${userId}">ID: ${userId}</a>`;
+      // Используем специальный формат ссылки для Telegram
+      const userLink = `<a href="tg://openmessage?user_id=${userId}">ID: ${userId}</a>`;
 
       const message = `
 📍 Новая запись на сдачу ГТО
@@ -88,9 +100,9 @@ const App = () => {
 УИН: ${formData.uin}
 Дисциплины: ${formData.disciplines.join(', ')}
 
-Пользователь: ${username ? `${username} (${mentionLink})` : mentionLink}
+Пользователь: ${username ? `${username} (${userLink})` : userLink}
 Отправлено: ${new Date().toLocaleString()}
-      `;
+`;
 
       console.log('Отправляемое сообщение:', message);
 
@@ -109,8 +121,9 @@ const App = () => {
       const result = await response.json();
       console.log('Response:', result);
 
-      if (!response.ok) {
-        throw new Error(`Ошибка отправки: ${result.description}`);
+      if (!result.ok) {
+        console.error('Ошибка отправки:', result);
+        throw new Error(result.description || 'Ошибка отправки сообщения');
       }
 
       if (webApp) {
@@ -134,7 +147,6 @@ const App = () => {
       }
     }
   };
-  
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Шапка */}
