@@ -87,11 +87,13 @@ const App = () => {
         return;
       }
 
-      const username = user?.username ? `@${user.username}` : '';
-      // Используем специальный формат ссылки для Telegram
-      const userLink = `<a href="tg://openmessage?user_id=${userId}">ID: ${userId}</a>`;
+// В функции handleFormSubmit меняем только формат ссылки:
 
-      const message = `
+const username = user?.username ? `@${user.username}` : '';
+// Используем простой формат ссылки
+const userLink = `<a href="tg://user?id=${userId}">🔗 ${userId}</a>`;
+
+const message = `
 📍 Новая запись на сдачу ГТО
 
 Место: ${selectedLocation.name}
@@ -100,7 +102,7 @@ const App = () => {
 УИН: ${formData.uin}
 Дисциплины: ${formData.disciplines.join(', ')}
 
-Пользователь: ${username ? `${username} (${userLink})` : userLink}
+Пользователь: ${username ? `${username} (ID: ${userLink})` : userLink}
 Отправлено: ${new Date().toLocaleString()}
 `;
 
