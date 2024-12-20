@@ -89,6 +89,9 @@ const App = () => {
 
       const username = user?.username ? `@${user.username}` : '';
       
+      // Убедимся что нет лишних пробелов и переносов строк внутри HTML-тега
+      const profileLink = `<a href="tg://user?id=${userId}">Написать сообщение</a>`;
+      
       const message = `
 📍 Новая запись на сдачу ГТО
 
@@ -98,12 +101,10 @@ const App = () => {
 УИН: ${formData.uin}
 Дисциплины: ${formData.disciplines.join(', ')}
 
-Пользователь: ${username || 'Без username'} 
-ID: ${userId}
-👤 <a href="tg://user?id=${userId}">Открыть профиль пользователя</a>
+Пользователь: ${username || 'Без username'} (ID: ${userId})
+${profileLink}
 
-Отправлено: ${new Date().toLocaleString()}
-`;
+Отправлено: ${new Date().toLocaleString()}`;
 
       console.log('Отправляемое сообщение:', message);
 
@@ -115,8 +116,9 @@ ID: ${userId}
         body: JSON.stringify({
           chat_id: TELEGRAM_CHAT_ID,
           text: message,
-          parse_mode: 'HTML'
-        }),
+          parse_mode: 'HTML',
+          disable_web_page_preview: true
+        })
       });
 
       const result = await response.json();
