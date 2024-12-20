@@ -63,9 +63,8 @@ const App = () => {
 
   const handleFormSubmit = async (formData) => {
     try {
-      const userId = user?.id ? user.id : null;
-      const userIdLink = userId ? `<a href="tg://user?id=${userId}">${userId}</a>` : 'Нет данных';
       const username = user?.username ? `@${user.username}` : '';
+      const userIdLink = `<a href="tg://user?id=${user.id}">${user.id}</a>`;
   
       const message = `
   📍 Новая запись на сдачу ГТО
@@ -82,7 +81,8 @@ const App = () => {
   
       console.log('Отправляемое сообщение:', message);
   
-      const response = await fetch('https://api.telegram.org/bot' + TELEGRAM_BOT_TOKEN + '/sendMessage', {
+      // Отправка сообщения в Telegram
+      const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -102,6 +102,7 @@ const App = () => {
   
       console.log('Успешно отправлено:', result);
   
+      // Успешное завершение
       if (webApp) {
         webApp.showPopup({
           title: 'Успешно!',
@@ -110,10 +111,13 @@ const App = () => {
         });
       }
   
+      // Сброс состояния
       setView('list');
       setSelectedLocation(null);
     } catch (error) {
       console.error('Ошибка отправки:', error);
+  
+      // Ошибка при отправке
       if (webApp) {
         webApp.showPopup({
           title: 'Ошибка',
@@ -124,7 +128,6 @@ const App = () => {
     }
   };
   
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Шапка */}
