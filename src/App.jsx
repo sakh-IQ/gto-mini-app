@@ -88,7 +88,8 @@ const App = () => {
       }
 
       const username = user?.username ? `@${user.username}` : '';
-      const userLink = `<a href="tg://user?id=${userId}">${userId}</a>`;
+      // Добавляем текстовый префикс к ID в отображении
+      const userLink = `<a href="tg://user?id=${userId}">tg_${userId}</a>`;
 
       const message = `
 📍 Новая запись на сдачу ГТО
