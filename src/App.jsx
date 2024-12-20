@@ -89,6 +89,18 @@ const App = () => {
 
       const username = user?.username ? `@${user.username}` : '';
       
+      // Создаем inline keyboard для кнопки
+      const keyboard = {
+        inline_keyboard: [
+          [
+            {
+              text: "👤 Открыть чат с пользователем",
+              url: `tg://user?id=${userId}`
+            }
+          ]
+        ]
+      };
+
       const message = `
 📍 Новая запись на сдачу ГТО
 
@@ -98,9 +110,7 @@ const App = () => {
 УИН: ${formData.uin}
 Дисциплины: ${formData.disciplines.join(', ')}
 
-Пользователь: ${username || 'Без username'} 
-[Открыть чат](tg://user?id=${userId})
-
+Пользователь: ${username || 'Без username'} (ID: ${userId})
 Отправлено: ${new Date().toLocaleString()}`;
 
       console.log('Отправляемое сообщение:', message);
@@ -113,7 +123,7 @@ const App = () => {
         body: JSON.stringify({
           chat_id: TELEGRAM_CHAT_ID,
           text: message,
-          parse_mode: 'MarkdownV2',
+          reply_markup: keyboard,
           disable_web_page_preview: true
         })
       });
