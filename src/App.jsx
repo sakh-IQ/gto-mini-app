@@ -88,11 +88,10 @@ const App = () => {
       }
 
       const username = user?.username ? `@${user.username}` : '';
-      // Формируем тестовую ссылку в точности как в примере
-      const tgLink = `<a href="tg://user?id=${userId}">inline mention of a user</a>`;
       
-      // Добавляем отладочную информацию
-      const debugInfo = `\n\nDebug info:\nUser ID: ${userId}\nRaw link: ${tgLink}`;
+      // Тестируем разные форматы ссылок
+      const htmlLink = `<a href="tg://user?id=${userId}">👤 Открыть чат с пользователем</a>`;
+      const rawLink = `tg://user?id/${userId}`;
       
       const message = `📍 Новая запись на сдачу ГТО
 
@@ -103,16 +102,19 @@ const App = () => {
 Дисциплины: ${formData.disciplines.join(', ')}
 
 Пользователь: ${username || 'Без username'} (ID: ${userId})
-${tgLink}${debugInfo}
+${htmlLink}
+
+Debug info:
+Raw URL: ${rawLink}
+Full HTML: <code>${htmlLink}</code>
 
 Отправлено: ${new Date().toLocaleString()}`;
 
-      // Формируем тело запроса с явными параметрами
+      // Формируем тело запроса
       const requestBody = {
         chat_id: TELEGRAM_CHAT_ID,
         text: message,
-        parse_mode: 'HTML',
-        disable_web_page_preview: true
+        parse_mode: 'HTML'
       };
 
       const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
