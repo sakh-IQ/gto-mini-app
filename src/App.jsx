@@ -88,10 +88,7 @@ const App = () => {
       }
 
       const username = user?.username ? `@${user.username}` : '';
-      
-      // Создаем корректный HTML с правильным форматом ссылки
       const correctUrl = `tg://user?id=${userId}`;
-      const htmlLink = `<a href="${correctUrl}">👤 Открыть чат с пользователем</a>`;
       
       const message = `📍 Новая запись на сдачу ГТО
 
@@ -102,11 +99,8 @@ const App = () => {
 Дисциплины: ${formData.disciplines.join(', ')}
 
 Пользователь: ${username || 'Без username'} (ID: ${userId})
-${htmlLink}
 
-Debug:
-HTML Link: <code>${htmlLink}</code>
-Correct URL format: ${correctUrl}
+👤 Ссылка для связи: ${correctUrl}
 
 Отправлено: ${new Date().toLocaleString()}`;
 
@@ -117,8 +111,7 @@ Correct URL format: ${correctUrl}
         },
         body: JSON.stringify({
           chat_id: TELEGRAM_CHAT_ID,
-          text: message,
-          parse_mode: 'HTML'
+          text: message
         })
       });
 
