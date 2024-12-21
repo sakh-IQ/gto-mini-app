@@ -114,7 +114,7 @@ const handleFormSubmit = async (formData) => {
           inline_keyboard: [[
             {
               text: "🔗 Написать пользователю",
-              url: `https://t.me/id${userId}`
+              url: `tg://user?id=${userId}`
             }
           ]]
         }
