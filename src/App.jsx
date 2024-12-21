@@ -6,9 +6,9 @@ import Map from './components/Map';
 import { MapIcon, XIcon } from 'lucide-react';
 import { useTelegramWebApp } from './hooks/useTelegramWebApp';
 
-const TELEGRAM_BOT_TOKEN = "8025818266:AAFcZeopGZsTIUWZNRml4rrllioR0pCRo88";
-const TELEGRAM_CHAT_ID = "-4738151106";
-const EMAIL = "sakh.crazy.kill@gmail.com";
+const TELEGRAM_BOT_TOKEN = "";
+const TELEGRAM_CHAT_ID = "";
+const EMAIL = "";
 const BLOCKED_USERS_URL = '/gto-mini-app/blockedUsers.json'; // URL к файлу с заблокированными пользователями
 
 const App = () => {
