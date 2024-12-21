@@ -64,40 +64,31 @@ const App = () => {
   const handleFormSubmit = async (formData) => {
     if (!webApp) return;
 
-    // Показываем диалог подтверждения
-    webApp.showConfirm('Отправить заявку на сдачу ГТО?', async (confirmed) => {
-      if (!confirmed) return;
+    try {
+      const userId = user?.id;
+      if (!userId) {
+        webApp.showPopup({
+          title: 'Ошибка',
+          message: 'Не удалось определить пользователя',
+          buttons: [{ type: 'ok' }]
+        });
+        return;
+      }
+
+      // Проверяем, не заблокирован ли пользователь
+      if (blockedUsers.includes(userId.toString())) {
+        webApp.showPopup({
+          title: 'Доступ ограничен',
+          message: 'Вы заблокированы за спам. Для разрешения ситуации обратитесь в муниципальный центр ГТО.',
+          buttons: [{ type: 'ok' }]
+        });
+        return;
+      }
+
+      const username = user?.username ? `@${user.username}` : '';
+      const correctUrl = `tg://user?id=${userId}`;
       
-      try {
-        // Показываем индикатор загрузки
-        webApp.showProgress();
-        
-        const userId = user?.id;
-        if (!userId) {
-          webApp.hideProgress();
-          webApp.showPopup({
-            title: 'Ошибка',
-            message: 'Не удалось определить пользователя',
-            buttons: [{ type: 'ok' }]
-          });
-          return;
-        }
-
-        // Проверяем, не заблокирован ли пользователь
-        if (blockedUsers.includes(userId.toString())) {
-          webApp.hideProgress();
-          webApp.showPopup({
-            title: 'Доступ ограничен',
-            message: 'Вы заблокированы за спам. Для разрешения ситуации обратитесь в муниципальный центр ГТО.',
-            buttons: [{ type: 'ok' }]
-          });
-          return;
-        }
-
-        const username = user?.username ? `@${user.username}` : '';
-        const correctUrl = `tg://user?id=${userId}`;
-        
-        const message = `📍 Новая запись на сдачу ГТО
+      const message = `📍 Новая запись на сдачу ГТО
 
 Место: ${selectedLocation.name}
 ФИО: ${formData.lastName} ${formData.firstName} ${formData.middleName}
@@ -111,45 +102,55 @@ const App = () => {
 
 Отправлено: ${new Date().toLocaleString()}`;
 
-        const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            chat_id: TELEGRAM_CHAT_ID,
-            text: message
-          })
+      // Показываем диалог подтверждения перед отправкой
+      const isConfirmed = await new Promise(resolve => {
+        webApp.showConfirm('Отправить заявку на сдачу ГТО?', (confirmed) => {
+          resolve(confirmed);
         });
+      });
 
-        const result = await response.json();
-
-        // Скрываем индикатор загрузки
-        webApp.hideProgress();
-
-        if (!result.ok) {
-          throw new Error(`Failed to send message: ${result.description}`);
-        }
-
-        webApp.showPopup({
-          title: 'Успешно!',
-          message: 'Ваша заявка принята.',
-          buttons: [{ type: 'ok' }]
-        });
-
-        setView('list');
-        setSelectedLocation(null);
-      } catch (error) {
-        console.error('Ошибка отправки:', error);
-        // Убедимся, что индикатор загрузки скрыт даже при ошибке
-        webApp.hideProgress();
-        webApp.showPopup({
-          title: 'Ошибка',
-          message: 'Не удалось отправить заявку. Попробуйте позже.',
-          buttons: [{ type: 'ok' }]
-        });
+      if (!isConfirmed) {
+        return;
       }
-    });
+
+      // Показываем индикатор загрузки
+      webApp.showProgress();
+
+      const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chat_id: TELEGRAM_CHAT_ID,
+          text: message
+        })
+      });
+
+      const result = await response.json();
+      webApp.hideProgress();
+
+      if (!result.ok) {
+        throw new Error(`Failed to send message: ${result.description}`);
+      }
+
+      webApp.showPopup({
+        title: 'Успешно!',
+        message: 'Ваша заявка принята.',
+        buttons: [{ type: 'ok' }]
+      });
+
+      setView('list');
+      setSelectedLocation(null);
+    } catch (error) {
+      console.error('Ошибка отправки:', error);
+      webApp.hideProgress();
+      webApp.showPopup({
+        title: 'Ошибка',
+        message: 'Не удалось отправить заявку. Попробуйте позже.',
+        buttons: [{ type: 'ok' }]
+      });
+    }
   };
   return (
     <div className="min-h-screen bg-gray-50">
