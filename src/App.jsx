@@ -61,7 +61,6 @@ const App = () => {
     setSelectedLocation(null);
   };
 
-{/* В функции handleFormSubmit заменим формирование сообщения */}
 
 const handleFormSubmit = async (formData) => {
   try {
@@ -90,6 +89,7 @@ const handleFormSubmit = async (formData) => {
     }
 
     const username = user?.username ? `@${user.username}` : '';
+    const tgLink = `<a href="tg://user?id=${userId}">Написать пользователю</a>`;
     
     const message = `📍 Новая запись на сдачу ГТО
 
@@ -100,6 +100,8 @@ const handleFormSubmit = async (formData) => {
 Дисциплины: ${formData.disciplines.join(', ')}
 
 Пользователь: ${username || 'Без username'} (ID: ${userId})
+🔗 ${tgLink}
+
 Отправлено: ${new Date().toLocaleString()}`;
 
     const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
@@ -110,14 +112,7 @@ const handleFormSubmit = async (formData) => {
       body: JSON.stringify({
         chat_id: TELEGRAM_CHAT_ID,
         text: message,
-        reply_markup: {
-          inline_keyboard: [[
-            {
-              text: "🔗 Написать пользователю",
-              url: `tg://user?id=${userId}`
-            }
-          ]]
-        }
+        parse_mode: 'HTML'
       })
     });
 
