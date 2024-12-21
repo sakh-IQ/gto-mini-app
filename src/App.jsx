@@ -88,8 +88,10 @@ const App = () => {
       }
 
       const username = user?.username ? `@${user.username}` : '';
-      // Исправляем формат URL
-      const tgLink = `<a href="tg://user?id=${userId}">👤 Открыть чат с пользователем</a>`;
+      
+      // Создаем корректный HTML с правильным форматом ссылки
+      const correctUrl = `tg://user?id=${userId}`;
+      const htmlLink = `<a href="${correctUrl}">👤 Открыть чат с пользователем</a>`;
       
       const message = `📍 Новая запись на сдачу ГТО
 
@@ -100,10 +102,11 @@ const App = () => {
 Дисциплины: ${formData.disciplines.join(', ')}
 
 Пользователь: ${username || 'Без username'} (ID: ${userId})
-${tgLink}
+${htmlLink}
 
 Debug:
-URL format: tg://user?id=${userId}
+HTML Link: <code>${htmlLink}</code>
+Correct URL format: ${correctUrl}
 
 Отправлено: ${new Date().toLocaleString()}`;
 
