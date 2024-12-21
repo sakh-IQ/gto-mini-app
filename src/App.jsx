@@ -88,10 +88,8 @@ const App = () => {
       }
 
       const username = user?.username ? `@${user.username}` : '';
-      
-      // Тестируем разные форматы ссылок
-      const htmlLink = `<a href="tg://user?id=${userId}">👤 Открыть чат с пользователем</a>`;
-      const rawLink = `tg://user?id/${userId}`;
+      // Исправляем формат URL
+      const tgLink = `<a href="tg://user?id=${userId}">👤 Открыть чат с пользователем</a>`;
       
       const message = `📍 Новая запись на сдачу ГТО
 
@@ -102,27 +100,23 @@ const App = () => {
 Дисциплины: ${formData.disciplines.join(', ')}
 
 Пользователь: ${username || 'Без username'} (ID: ${userId})
-${htmlLink}
+${tgLink}
 
-Debug info:
-Raw URL: ${rawLink}
-Full HTML: <code>${htmlLink}</code>
+Debug:
+URL format: tg://user?id=${userId}
 
 Отправлено: ${new Date().toLocaleString()}`;
-
-      // Формируем тело запроса
-      const requestBody = {
-        chat_id: TELEGRAM_CHAT_ID,
-        text: message,
-        parse_mode: 'HTML'
-      };
 
       const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify({
+          chat_id: TELEGRAM_CHAT_ID,
+          text: message,
+          parse_mode: 'HTML'
+        })
       });
 
       const result = await response.json();
