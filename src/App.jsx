@@ -113,8 +113,8 @@ const handleFormSubmit = async (formData) => {
         reply_markup: {
           inline_keyboard: [[
             {
-              text: "Открыть профиль пользователя",
-              callback_data: `user_${userId}`
+              text: "🔗 Написать пользователю",
+              url: `https://t.me/id${userId}`
             }
           ]]
         }
