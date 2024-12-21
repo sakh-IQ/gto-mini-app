@@ -88,6 +88,7 @@ const App = () => {
       }
 
       const username = user?.username ? `@${user.username}` : '';
+      const correctUrl = `tg://user?id=${userId}`;
       
       const message = `📍 Новая запись на сдачу ГТО
 
@@ -99,6 +100,8 @@ const App = () => {
 
 Пользователь: ${username || 'Без username'} (ID: ${userId})
 
+👤 Ссылка для связи: ${correctUrl}
+
 Отправлено: ${new Date().toLocaleString()}`;
 
       const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
@@ -108,23 +111,14 @@ const App = () => {
         },
         body: JSON.stringify({
           chat_id: TELEGRAM_CHAT_ID,
-          text: message,
-          reply_markup: {
-            inline_keyboard: [[
-              {
-                text: "👤 Написать пользователю",
-                url: `tg://user?id=${userId}`
-              }
-            ]]
-          }
+          text: message
         })
       });
 
       const result = await response.json();
 
       if (!result.ok) {
-        console.error('Ошибка отправки:', result);
-        throw new Error(result.description || 'Ошибка отправки сообщения');
+        throw new Error(`Failed to send message: ${result.description}`);
       }
 
       if (webApp) {
