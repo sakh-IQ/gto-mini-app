@@ -1,3 +1,11 @@
 {
-  "blockedUsers": []
+  "blockedUsers": [
+    {
+      "id": "294959005",
+      "blockedAt": "2025-07-06T11:58:34.021Z",
+      "reason": "spam",
+      "blockedBy": 294959005,
+      "adminName": "Илья"
+    }
+  ]
 }
