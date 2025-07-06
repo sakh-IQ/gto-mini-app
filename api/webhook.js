@@ -27,7 +27,7 @@ async function sendTelegramMessage(chatId, text) {
 // Получение файла с GitHub
 async function getBlockedUsersFromGitHub() {
   try {
-    const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/public/blockedUsers.json`, {
+    const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/blockedUsers.json`, {
       headers: {
         'Authorization': `token ${GITHUB_TOKEN}`,
         'Accept': 'application/vnd.github.v3+json'
@@ -51,7 +51,7 @@ async function getBlockedUsersFromGitHub() {
 async function updateBlockedUsersOnGitHub(blockedUsers, sha) {
   const content = Buffer.from(JSON.stringify(blockedUsers, null, 2)).toString('base64');
   
-  const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/public/blockedUsers.json`, {
+  const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/blockedUsers.json`, {
     method: 'PUT',
     headers: {
       'Authorization': `token ${GITHUB_TOKEN}`,
