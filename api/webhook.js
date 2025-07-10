@@ -1,13 +1,12 @@
 // api/webhook.js
 const TELEGRAM_BOT_TOKEN = "7573309906:AAEnBRhkz1gUED5eDAR1A3BXd2LDJkUW8AA";
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN; // Добавим в настройки Vercel
-const GITHUB_REPO = "sakh-IQ/gto-mini-app"; // Замените на свой репозиторий
-// URL Google Apps Script веб-приложения - добавьте в переменные окружения Vercel
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const GITHUB_REPO = "sakh-IQ/gto-mini-app";
 const GOOGLE_APPS_SCRIPT_URL = process.env.GOOGLE_APPS_SCRIPT_URL;
 
 // Список администраторов
 const ADMINS = {
-  '294959005': 'Илья',  // Добавьте своих админов
+  '294959005': 'Илья',
 };
 
 // Проверка админских прав
@@ -30,6 +29,10 @@ async function sendToGoogleSheets(data) {
       },
       body: JSON.stringify(data),
     });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
     const result = await response.json();
     
@@ -131,6 +134,29 @@ export default async function handler(req, res) {
 
   try {
     const update = req.body;
+    
+    // 🆕 НОВЫЙ ФУНКЦИОНАЛ: Прокси для Google Sheets
+    if (update.proxy_action === 'save_to_sheets') {
+      console.log('📊 Получен запрос на сохранение в Google Sheets через прокси');
+      console.log('📋 Данные:', update.data);
+      
+      try {
+        const result = await sendToGoogleSheets(update.data);
+        console.log('✅ Результат записи в Google Sheets:', result);
+        
+        return res.status(200).json({
+          success: result.success,
+          message: result.message || 'Данные обработаны',
+          error: result.error
+        });
+      } catch (error) {
+        console.error('❌ Ошибка при записи через прокси:', error);
+        return res.status(500).json({
+          success: false,
+          error: error.message
+        });
+      }
+    }
     
     // Обработка нажатий на кнопки
     if (update.callback_query) {
