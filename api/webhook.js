@@ -2,6 +2,8 @@
 const TELEGRAM_BOT_TOKEN = "7573309906:AAEnBRhkz1gUED5eDAR1A3BXd2LDJkUW8AA";
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN; // Добавим в настройки Vercel
 const GITHUB_REPO = "sakh-IQ/gto-mini-app"; // Замените на свой репозиторий
+// URL Google Apps Script веб-приложения - добавьте в переменные окружения Vercel
+const GOOGLE_APPS_SCRIPT_URL = process.env.GOOGLE_APPS_SCRIPT_URL;
 
 // Список администраторов
 const ADMINS = {
@@ -10,6 +12,39 @@ const ADMINS = {
 
 // Проверка админских прав
 const isAdmin = (userId) => Object.keys(ADMINS).includes(userId.toString());
+
+// Функция для отправки данных в Google Таблицу
+async function sendToGoogleSheets(data) {
+  if (!GOOGLE_APPS_SCRIPT_URL) {
+    console.log('Google Apps Script URL не настроен, пропускаем запись в таблицу');
+    return { success: false, error: 'Google Apps Script URL не настроен' };
+  }
+
+  try {
+    console.log('Отправляем данные в Google Таблицу:', data);
+    
+    const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+    
+    if (!result.success) {
+      console.error('Ошибка записи в Google Таблицу:', result.error);
+    } else {
+      console.log('Данные успешно записаны в Google Таблицу');
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('Ошибка при отправке в Google Таблицу:', error);
+    return { success: false, error: error.message };
+  }
+}
 
 // Отправка сообщения в Telegram
 async function sendTelegramMessage(chatId, text) {
@@ -27,10 +62,11 @@ async function sendTelegramMessage(chatId, text) {
 // Получение файла с GitHub
 async function getBlockedUsersFromGitHub() {
   try {
-    const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/blockedUsers.json`, {
+    const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/blockedUsers.json?ref=main&t=${Date.now()}`, {
       headers: {
         'Authorization': `token ${GITHUB_TOKEN}`,
-        'Accept': 'application/vnd.github.v3+json'
+        'Accept': 'application/vnd.github.v3+json',
+        'Cache-Control': 'no-cache'
       }
     });
     
@@ -112,6 +148,13 @@ export default async function handler(req, res) {
         const targetUserId = data.split(':')[1];
         const adminName = ADMINS[userId.toString()];
         
+        // Отправляем обновление в Google Таблицу
+        await sendToGoogleSheets({
+          action: 'take_in_work',
+          userId: targetUserId,
+          adminName: adminName
+        });
+        
         const newText = callbackQuery.message.text + `\n\n📋 Взято в работу: ${adminName}`;
         
         await editMessage(chatId, messageId, newText, {
@@ -154,13 +197,29 @@ export default async function handler(req, res) {
           await updateBlockedUsersOnGitHub(blockedData, sha);
         }
         
+        // Отправляем обновление в Google Таблицу
+        await sendToGoogleSheets({
+          action: 'block',
+          userId: targetUserId,
+          adminName: adminName
+        });
+        
         const newText = callbackQuery.message.text + 
           `\n\n🚫 Пользователь заблокирован\nАдминистратор: ${adminName}\n${new Date().toLocaleString()}`;
         
         await editMessage(chatId, messageId, newText, { inline_keyboard: [] });
         
       } else if (data.startsWith('complete:')) {
+        const targetUserId = data.split(':')[1];
         const adminName = ADMINS[userId.toString()];
+        
+        // Отправляем обновление в Google Таблицу
+        await sendToGoogleSheets({
+          action: 'complete',
+          userId: targetUserId,
+          adminName: adminName
+        });
+        
         const newText = callbackQuery.message.text + 
           `\n\n✅ Обработано: ${adminName}\n${new Date().toLocaleString()}`;
         
