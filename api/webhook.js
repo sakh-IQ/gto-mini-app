@@ -12,40 +12,95 @@ const ADMINS = {
 // Проверка админских прав
 const isAdmin = (userId) => Object.keys(ADMINS).includes(userId.toString());
 
-// Функция для отправки данных в Google Таблицу
+// Функция для отправки данных в Google Таблицу с детальной диагностикой
 async function sendToGoogleSheets(data) {
+  console.log('=== НАЧАЛО ОТПРАВКИ В GOOGLE SHEETS ===');
+  console.log('GOOGLE_APPS_SCRIPT_URL:', GOOGLE_APPS_SCRIPT_URL);
+  console.log('URL присутствует:', !!GOOGLE_APPS_SCRIPT_URL);
+  
   if (!GOOGLE_APPS_SCRIPT_URL) {
-    console.log('Google Apps Script URL не настроен, пропускаем запись в таблицу');
+    console.log('❌ Google Apps Script URL не настроен');
     return { success: false, error: 'Google Apps Script URL не настроен' };
   }
 
   try {
-    console.log('Отправляем данные в Google Таблицу:', data);
+    console.log('📤 Отправляем данные:', JSON.stringify(data, null, 2));
     
-    const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+    const requestOptions = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (compatible; Webhook/1.0)',
       },
       body: JSON.stringify(data),
+    };
+    
+    console.log('📋 Параметры запроса:', {
+      url: GOOGLE_APPS_SCRIPT_URL,
+      method: requestOptions.method,
+      headers: requestOptions.headers,
+      bodyLength: requestOptions.body.length
     });
-
+    
+    console.log('⏳ Выполняем fetch запрос...');
+    
+    const response = await fetch(GOOGLE_APPS_SCRIPT_URL, requestOptions);
+    
+    console.log('📥 Получен ответ от Google Apps Script');
+    console.log('Status:', response.status);
+    console.log('Status Text:', response.statusText);
+    console.log('Headers:', Object.fromEntries(response.headers.entries()));
+    
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      console.error('❌ HTTP ошибка:', response.status, response.statusText);
+      
+      // Пытаемся получить текст ошибки
+      let errorText = 'Неизвестная ошибка';
+      try {
+        errorText = await response.text();
+        console.log('📋 Текст ошибки:', errorText);
+      } catch (e) {
+        console.log('Не удалось получить текст ошибки:', e.message);
+      }
+      
+      return { 
+        success: false, 
+        error: `HTTP ${response.status}: ${response.statusText}`,
+        details: errorText
+      };
     }
-
+    
+    console.log('⏳ Парсим JSON ответ...');
     const result = await response.json();
+    console.log('✅ Результат от Google Apps Script:', JSON.stringify(result, null, 2));
     
     if (!result.success) {
-      console.error('Ошибка записи в Google Таблицу:', result.error);
+      console.error('❌ Ошибка от Google Apps Script:', result.error);
     } else {
-      console.log('Данные успешно записаны в Google Таблицу');
+      console.log('🎉 Данные успешно записаны в Google Таблицу');
     }
     
+    console.log('=== КОНЕЦ ОТПРАВКИ В GOOGLE SHEETS ===');
     return result;
+    
   } catch (error) {
-    console.error('Ошибка при отправке в Google Таблицу:', error);
-    return { success: false, error: error.message };
+    console.error('💥 Критическая ошибка при отправке в Google Таблицу:', error);
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    
+    // Дополнительная информация об ошибке
+    if (error.cause) {
+      console.error('Error cause:', error.cause);
+    }
+    
+    console.log('=== КОНЕЦ ОТПРАВКИ В GOOGLE SHEETS (С ОШИБКОЙ) ===');
+    return { 
+      success: false, 
+      error: error.message,
+      errorType: error.name,
+      stack: error.stack
+    };
   }
 }
 
@@ -135,25 +190,32 @@ export default async function handler(req, res) {
   try {
     const update = req.body;
     
+    // Логируем все входящие запросы
+    console.log('🔄 Получен webhook update:', JSON.stringify(update, null, 2));
+    
     // 🆕 НОВЫЙ ФУНКЦИОНАЛ: Прокси для Google Sheets
     if (update.proxy_action === 'save_to_sheets') {
       console.log('📊 Получен запрос на сохранение в Google Sheets через прокси');
-      console.log('📋 Данные:', update.data);
+      console.log('📋 Данные для сохранения:', JSON.stringify(update.data, null, 2));
       
       try {
         const result = await sendToGoogleSheets(update.data);
-        console.log('✅ Результат записи в Google Sheets:', result);
+        console.log('✅ Результат записи в Google Sheets:', JSON.stringify(result, null, 2));
         
         return res.status(200).json({
           success: result.success,
           message: result.message || 'Данные обработаны',
-          error: result.error
+          error: result.error,
+          details: result.details,
+          errorType: result.errorType
         });
       } catch (error) {
         console.error('❌ Ошибка при записи через прокси:', error);
         return res.status(500).json({
           success: false,
-          error: error.message
+          error: error.message,
+          errorType: error.name,
+          stack: error.stack
         });
       }
     }
@@ -166,7 +228,10 @@ export default async function handler(req, res) {
       const data = callbackQuery.data;
       const userId = callbackQuery.from.id;
       
+      console.log('👆 Нажата кнопка:', data, 'пользователем:', userId);
+      
       if (!isAdmin(userId)) {
+        console.log('❌ Пользователь не является админом');
         return res.status(200).json({ ok: true });
       }
       
@@ -174,12 +239,16 @@ export default async function handler(req, res) {
         const targetUserId = data.split(':')[1];
         const adminName = ADMINS[userId.toString()];
         
+        console.log('📋 Админ', adminName, 'берет в работу пользователя:', targetUserId);
+        
         // Отправляем обновление в Google Таблицу
-        await sendToGoogleSheets({
+        const sheetsResult = await sendToGoogleSheets({
           action: 'take_in_work',
           userId: targetUserId,
           adminName: adminName
         });
+        
+        console.log('📊 Результат обновления статуса в Google Sheets:', sheetsResult);
         
         const newText = callbackQuery.message.text + `\n\n📋 Взято в работу: ${adminName}`;
         
@@ -203,6 +272,8 @@ export default async function handler(req, res) {
         const targetUserId = data.split(':')[1];
         const adminName = ADMINS[userId.toString()];
         
+        console.log('🚫 Админ', adminName, 'блокирует пользователя:', targetUserId);
+        
         // Получаем текущий список заблокированных
         const { data: blockedData, sha } = await getBlockedUsersFromGitHub();
         
@@ -224,11 +295,13 @@ export default async function handler(req, res) {
         }
         
         // Отправляем обновление в Google Таблицу
-        await sendToGoogleSheets({
+        const sheetsResult = await sendToGoogleSheets({
           action: 'block',
           userId: targetUserId,
           adminName: adminName
         });
+        
+        console.log('📊 Результат записи блокировки в Google Sheets:', sheetsResult);
         
         const newText = callbackQuery.message.text + 
           `\n\n🚫 Пользователь заблокирован\nАдминистратор: ${adminName}\n${new Date().toLocaleString()}`;
@@ -239,12 +312,16 @@ export default async function handler(req, res) {
         const targetUserId = data.split(':')[1];
         const adminName = ADMINS[userId.toString()];
         
+        console.log('✅ Админ', adminName, 'завершает заявку пользователя:', targetUserId);
+        
         // Отправляем обновление в Google Таблицу
-        await sendToGoogleSheets({
+        const sheetsResult = await sendToGoogleSheets({
           action: 'complete',
           userId: targetUserId,
           adminName: adminName
         });
+        
+        console.log('📊 Результат завершения в Google Sheets:', sheetsResult);
         
         const newText = callbackQuery.message.text + 
           `\n\n✅ Обработано: ${adminName}\n${new Date().toLocaleString()}`;
@@ -302,7 +379,7 @@ export default async function handler(req, res) {
     
     return res.status(200).json({ ok: true });
   } catch (error) {
-    console.error('Webhook error:', error);
+    console.error('💥 Webhook error:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
